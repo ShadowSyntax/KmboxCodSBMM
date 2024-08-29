@@ -1,35 +1,78 @@
-// AFKBot.cpp
-
+#define NOMINMAX
+#include <algorithm>
 #include "AFKBot.h"
 #include <iostream>
-#include <windows.h>  // Include the Windows API header for console manipulation
+#include <thread>
+#include <chrono>
+#include <conio.h>
+#include <Windows.h>
+
+AFKBot::AFKBot(Kmbox* kmbox)
+    : kmbox(kmbox),
+    distX(0, 1)
+{
+    std::random_device rd;
+    rng.seed(rd());
+}
 
 void AFKBot::run() {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
-    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
-    WORD saved_attributes = consoleInfo.wAttributes;
+    COORD statusPos = { 0, 10 };
 
-    // Set text color to green (or any color you like)
-    SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN);
+    SetConsoleCursorPosition(hConsole, statusPos);
+    std::cout << "Running AFK press Esc to stop...";
 
-    // Main loop
     bool running = true;
     while (running) {
-        // Set cursor position for dynamic content
-        COORD pos = { 0, 8 }; // Same line number used in main.cpp to keep content below the ASCII art
-        SetConsoleCursorPosition(hConsole, pos);
-
-        // Display a message indicating that "Cod AFK" is running
-        std::cout << "Cod AFK is now running press Esc to stop...\n";
-        // Check if the 'Esc' key is pressed
-        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
-            running = false;  // Exit the loop if 'Esc' is pressed
+        if (_kbhit()) {
+            char ch = _getch();
+            if (ch == 27) {
+                running = false;
+                break;
+            }
         }
-
-        Sleep(100);  
+        moveMouseRandomly();
+        std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 
-    // Restore the original console color
-    SetConsoleTextAttribute(hConsole, saved_attributes);
+    SetConsoleCursorPosition(hConsole, statusPos);
+    std::cout << "                    ";
+
+    SetConsoleCursorPosition(hConsole, { 0, 12 });
+    std::cout << "AFK Bot stopped. Returning to the main menu... ";
+}
+
+void AFKBot::moveMouseRandomly() {
+    POINT cursorPos;
+    if (!GetCursorPos(&cursorPos)) {
+        std::cerr << "Failed to get cursor position!\n";
+        return;
+    }
+
+    int moveAmount = distX(rng);
+
+    bool moveRight = rng() % 2 == 0;
+
+    int newX = cursorPos.x + (moveRight ? moveAmount : -moveAmount);
+    int newY = cursorPos.y;
+
+    newX = std::max(0, std::min(newX, 1920));
+
+    const int steps = 20;
+    int stepX = (newX - cursorPos.x) / steps;
+
+    for (int i = 0; i < steps; ++i) {
+        int intermediateX = cursorPos.x + stepX * i;
+        int intermediateY = cursorPos.y;
+
+        std::string command = "km.move(" + std::to_string(intermediateX) + "," + std::to_string(intermediateY) + ")\r\n";
+        kmbox->send_command(command);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    std::string command = "km.move(" + std::to_string(newX) + "," + std::to_string(newY) + ")\r\n";
+    kmbox->send_command(command);
+
+    std::cout << "Moved mouse to (" << newX << ", " << newY << ")\n";
 }

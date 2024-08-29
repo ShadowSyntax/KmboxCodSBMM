@@ -1,12 +1,23 @@
-// AFKBot.h
 
 #ifndef AFKBOT_H
 #define AFKBOT_H
 
+#include "Kmbox_interface.hpp"
+#include <chrono>
+#include <random>
+
 class AFKBot {
 public:
-    // Method to handle the output for "Cod AFK"
+    AFKBot(Kmbox* kmbox);
     void run();
+
+private:
+    Kmbox* kmbox;
+    std::mt19937 rng;
+    std::uniform_int_distribution<int> distX;
+    std::uniform_int_distribution<int> distY;
+
+    void moveMouseRandomly(); 
 };
 
-#endif // AFKBOT_H
+#endif 
