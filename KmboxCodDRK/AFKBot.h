@@ -3,7 +3,6 @@
 
 #include "Kmbox_interface.hpp"
 #include <random>
-#include <string>
 
 class AFKBot {
 public:
@@ -13,14 +12,17 @@ public:
 private:
     void moveMouseRandomly();
     void performRandomKeyPresses();
-    void pressRightMouseButton(); // Declare method to press right mouse button
-    void releaseRightMouseButton(); // Declaration of the key press method
+    void pressRightMouseButton();
+    void releaseRightMouseButton();
+    void pressLeftMouseButton();
+    void releaseLeftMouseButton();
 
     Kmbox* kmbox;
     std::mt19937 rng;
     std::uniform_int_distribution<> distX;
     std::uniform_int_distribution<> distDelay;
     std::uniform_int_distribution<> distHold;
+    std::uniform_int_distribution<> distLeftClickDuration; 
 };
 
-#endif // AFKBOT_H
+#endif 
