@@ -1,10 +1,9 @@
-
 #ifndef AFKBOT_H
 #define AFKBOT_H
 
 #include "Kmbox_interface.hpp"
-#include <chrono>
 #include <random>
+#include <string>
 
 class AFKBot {
 public:
@@ -12,12 +11,16 @@ public:
     void run();
 
 private:
+    void moveMouseRandomly();
+    void performRandomKeyPresses();
+    void pressRightMouseButton(); // Declare method to press right mouse button
+    void releaseRightMouseButton(); // Declaration of the key press method
+
     Kmbox* kmbox;
     std::mt19937 rng;
-    std::uniform_int_distribution<int> distX;
-    std::uniform_int_distribution<int> distY;
-
-    void moveMouseRandomly(); 
+    std::uniform_int_distribution<> distX;
+    std::uniform_int_distribution<> distDelay;
+    std::uniform_int_distribution<> distHold;
 };
 
-#endif 
+#endif // AFKBOT_H
