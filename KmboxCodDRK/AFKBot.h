@@ -16,13 +16,15 @@ private:
     void releaseRightMouseButton();
     void pressLeftMouseButton();
     void releaseLeftMouseButton();
+    void pressSpaceBar();
 
     Kmbox* kmbox;
     std::mt19937 rng;
     std::uniform_int_distribution<> distX;
     std::uniform_int_distribution<> distDelay;
     std::uniform_int_distribution<> distHold;
-    std::uniform_int_distribution<> distLeftClickDuration; 
+    std::uniform_int_distribution<> distLeftClickDuration;
+    int commandCount; 
 };
 
 #endif 

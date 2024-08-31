@@ -6,14 +6,15 @@
 #include <chrono>
 #include <conio.h>
 #include <Windows.h>
-#include <cstdio>  
+#include <cstdio>
 
 AFKBot::AFKBot(Kmbox* kmbox)
     : kmbox(kmbox),
     distX(300, 1500),
     distDelay(1, 2),
-    distHold(2, 6),  
-    distLeftClickDuration(500, 1000) 
+    distHold(2, 6),
+    distLeftClickDuration(500, 1000),
+    commandCount(0) 
 {
     std::random_device rd;
     rng.seed(rd());
@@ -37,6 +38,11 @@ void AFKBot::run() {
         }
         moveMouseRandomly();
         performRandomKeyPresses();
+        commandCount += 2; 
+        if (commandCount >= 2) { 
+            pressSpaceBar();
+            commandCount = 0;
+        }
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
@@ -62,14 +68,16 @@ void AFKBot::moveMouseRandomly() {
     int delayMs = 10;
 
     for (int i = 0; i < steps; ++i) {
-        std::string command = "km.move(" + std::to_string(stepAmount) + ",0)\r\n";
+        char command[1024] = { 0 };
+        sprintf_s(command, "km.move(%d,0)\r\n", stepAmount);
+        std::cout << "Sending command: " << command;
         kmbox->send_command(command);
         std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
     }
 
     if (rng() % 2 == 0) {
         pressRightMouseButton();
-        std::this_thread::sleep_for(std::chrono::seconds(distHold(rng))); 
+        std::this_thread::sleep_for(std::chrono::seconds(distHold(rng)));
         releaseRightMouseButton();
     }
 
@@ -79,44 +87,56 @@ void AFKBot::moveMouseRandomly() {
 }
 
 void AFKBot::performRandomKeyPresses() {
-    const char keys[] = { 'W', 'A', 'S', 'D' };
+    const char keys[] = { 'w', 'a', 's', 'd' };
     char key = keys[rng() % (sizeof(keys) / sizeof(keys[0]))];
 
-    std::string command = "km.press('" + std::string(1, key) + "')\r\n";
+    char command[1024] = { 0 };
+    sprintf_s(command, "km.press('%c')\r\n", key); 
     kmbox->send_command(command);
 
-    int delay = distDelay(rng) * 1000; 
+    int delay = distDelay(rng) * 1000;
     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 
     std::cout << "Pressed key: " << key << "\n";
 }
 
 void AFKBot::pressRightMouseButton() {
-    std::string command = "km.right(" + std::to_string(1) + ")\r\n"; 
+    char command[1024] = { 0 };
+    sprintf_s(command, "km.right(%d)\r\n", 1);
     kmbox->send_command(command);
     std::cout << "Right mouse button pressed.\n";
 
     if (rng() % 2 == 0) {
         pressLeftMouseButton();
-        std::this_thread::sleep_for(std::chrono::milliseconds(distLeftClickDuration(rng))); 
+        std::this_thread::sleep_for(std::chrono::milliseconds(distLeftClickDuration(rng)));
         releaseLeftMouseButton();
     }
 }
 
 void AFKBot::releaseRightMouseButton() {
-    std::string command = "km.right(" + std::to_string(0) + ")\r\n"; 
+    char command[1024] = { 0 };
+    sprintf_s(command, "km.right(%d)\r\n", 0); 
     kmbox->send_command(command);
     std::cout << "Right mouse button released.\n";
 }
 
 void AFKBot::pressLeftMouseButton() {
-    std::string command = "km.left(" + std::to_string(1) + ")\r\n";
+    char command[1024] = { 0 };
+    sprintf_s(command, "km.left(%d)\r\n", 1);
     kmbox->send_command(command);
     std::cout << "Left mouse button pressed.\n";
 }
 
 void AFKBot::releaseLeftMouseButton() {
-    std::string command = "km.left(" + std::to_string(0) + ")\r\n"; 
+    char command[1024] = { 0 };
+    sprintf_s(command, "km.left(%d)\r\n", 0);
     kmbox->send_command(command);
     std::cout << "Left mouse button released.\n";
+}
+
+void AFKBot::pressSpaceBar() {
+    char command[1024] = { 0 };
+    sprintf_s(command, "km.press('space')\r\n"); 
+    kmbox->send_command(command);
+    std::cout << "Space bar pressed.\n";
 }
